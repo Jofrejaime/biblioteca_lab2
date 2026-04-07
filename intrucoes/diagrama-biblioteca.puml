@@ -4,44 +4,72 @@ skinparam classAttributeIconSize 0
 title Sistema de Biblioteca Académica - Diagrama de Classes
 
 class Biblioteca {
-  - utilizadores: List<Utilizador>
-  - livros: List<Livro>
-  - emprestimos: List<Emprestimo>
-  + registarUtilizador(u: Utilizador): void
-  + registarLivro(l: Livro): void
-  + registarEmprestimo(u: Utilizador, l: Livro, inicio: Date, prevista: Date): Emprestimo
-  + devolverLivro(e: Emprestimo): void
+  - utilizadorManager: UtilizadorManager
+  - livroManager: LivroManager
+  - emprestimoManager: EmprestimoManager
+  + registarUtilizador(u: Utilizador): Utilizador
+  + buscarUtilizadorPorId(id: int): Utilizador
+  + listarUtilizadores(): List<Utilizador>
+  + registarLivro(l: Livro): Livro
+  + buscarLivroPorIsbn(isbn: String): Livro
+  + buscarLivroPorId(id: int): Livro
+  + listarLivros(): List<Livro>
+  + registarEmprestimo(utilId: int, isbn: String, inicio: LocalDate, prevista: LocalDate): Emprestimo
+  + devolverLivro(empId: int, dataDevolucao: LocalDate): void
+  + atualizarEstadosEmprestimos(dataAtual: LocalDate): void
+  + listarEmprestimos(): List<Emprestimo>
 }
 
 class Utilizador {
-  - id: String
+  - id: int
   - nomeCompleto: String
   - contacto: String
-  + contarEmprestimosAtivos(): int
-  + podeRequisitar(): boolean
+  + getId(): int
+  + setId(id: int): void
+  + getNomeCompleto(): String
+  + getContacto(): String
 }
 
 class Livro {
+  - id: int
   - isbn: String
   - titulo: String
   - anoPublicacao: int
   - autor: String
   - totalExemplares: int
   - exemplaresDisponiveis: int
+  + getId(): int
+  + setId(id: int): void
+  + getIsbn(): String
+  + getTitulo(): String
+  + getAnoPublicacao(): int
+  + getAutor(): String
+  + getTotalExemplares(): int
+  + getExemplaresDisponiveis(): int
   + verificarDisponibilidade(): boolean
   + reduzirDisponibilidade(): void
   + reporDisponibilidade(): void
 }
 
 class Emprestimo {
-  - id: String
-  - dataInicio: Date
-  - dataPrevistaDevolucao: Date
-  - dataDevolucao: Date
+  - id: int
+  - dataInicio: LocalDate
+  - dataPrevistaDevolucao: LocalDate
+  - dataDevolucao: LocalDate
   - estado: EstadoEmprestimo
+  - utilizador: Utilizador
+  - livro: Livro
+  + getId(): int
+  + setId(id: int): void
+  + getDataInicio(): LocalDate
+  + getDataPrevistaDevolucao(): LocalDate
+  + getDataDevolucao(): LocalDate
+  + getEstado(): EstadoEmprestimo
+  + getUtilizador(): Utilizador
+  + getLivro(): Livro
   + registar(): void
-  + devolver(data: Date): void
-  + verificarAtraso(dataAtual: Date): void
+  + devolver(data: LocalDate): void
+  + verificarAtraso(dataAtual: LocalDate): void
 }
 
 enum EstadoEmprestimo {
@@ -49,6 +77,34 @@ enum EstadoEmprestimo {
   DEVOLVIDO
   ATRASADO
 }
+
+class UtilizadorManager {
+  + registar(u: Utilizador): Utilizador
+  + buscarPorId(id: int): Utilizador
+  + existe(id: int): boolean
+  + listarTodos(): List<Utilizador>
+}
+
+class LivroManager {
+  + registar(l: Livro): Livro
+  + buscarPorIsbn(isbn: String): Livro
+  + buscarPorId(id: int): Livro
+  + atualizarDisponibilidade(livroId: int, exemplares: int): void
+  + listarTodos(): List<Livro>
+}
+
+class EmprestimoManager {
+  + inserir(e: Emprestimo): Emprestimo
+  + buscarPorId(id: int): Emprestimo
+  + contarAtivosPorUtilizador(utilId: int): int
+  + atualizarParaDevolvido(empId: int, data: LocalDate): void
+  + atualizarAtrasados(dataAtual: LocalDate): void
+  + listarTodos(): List<Emprestimo>
+}
+
+Biblioteca o-- "1" UtilizadorManager : usa
+Biblioteca o-- "1" LivroManager : usa
+Biblioteca o-- "1" EmprestimoManager : usa
 
 Biblioteca o-- "0..*" Utilizador : gere
 Biblioteca o-- "0..*" Livro : gere
@@ -58,16 +114,31 @@ Utilizador "1" <-- "0..*" Emprestimo : realiza
 Livro "1" <-- "0..*" Emprestimo : refere-se a
 Emprestimo --> EstadoEmprestimo
 
+UtilizadorManager ..> Utilizador : mapeia
+LivroManager ..> Livro : mapeia
+EmprestimoManager ..> Emprestimo : mapeia
+
 note right of Utilizador
-Regra:
-maximo de 3 emprestimos
-ATIVOS em simultaneo
+ID gerado automaticamente
+pela base de dados (AUTO_INCREMENT)
+end note
+
+note right of Livro
+ID gerado automaticamente
+pela base de dados (AUTO_INCREMENT)
+end note
+
+note right of Emprestimo
+ID gerado automaticamente
+pela base de dados (AUTO_INCREMENT)
+Limite: maximo 3 emprestimos
+ATIVOS/ATRASADOS simultaneos
 end note
 
 note right of Biblioteca
-So regista emprestimo se:
-1) utilizador pode requisitar
-2) livro tem exemplares disponiveis
+Fachada: orquestra operações
+entre managers e modelo.
+Encapsula persistência em BD.
 end note
 
 @enduml
