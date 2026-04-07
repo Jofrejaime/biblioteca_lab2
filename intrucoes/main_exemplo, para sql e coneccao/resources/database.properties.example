@@ -1,0 +1,5 @@
+# Copie este arquivo para database.properties e preencha suas credenciais
+db.url=jdbc:mysql://localhost/SEU_BANCO
+db.user=SEU_USUARIO
+db.password=SUA_SENHA
+db.driver=com.mysql.cj.jdbc.Driver

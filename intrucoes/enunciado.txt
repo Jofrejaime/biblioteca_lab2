@@ -1,0 +1,88 @@
+📘 Lab #02 – Engenharia de Software II (ISPTEC)
+1. Objectivo do Laboratório
+
+Este Laboratório tem como finalidade desenvolver a capacidade do estudante em:
+
+Interpretar um problema real e traduzi-lo em um modelo orientado a objetos
+Identificar corretamente classes, atributos e responsabilidades
+Definir relações e cardinalidades com precisão
+Aplicar conceitos de UML na implementação prática de software
+Garantir coerência entre análise, modelação e codificação
+2. Sistema de Biblioteca Académica
+
+O Instituto Superior Politécnico de Tecnologias e Ciências (ISPTEC) pretende modernizar o funcionamento da sua biblioteca académica, que atualmente enfrenta dificuldades na gestão manual dos seus recursos. Entre os principais problemas identificados estão a desorganização no controlo de empréstimos, a falta de visibilidade sobre a disponibilidade de livros e inconsistências no registo de utilizadores.
+
+Para ultrapassar essas limitações, foi proposta a criação de um sistema informático que permita gerir de forma eficiente os livros, os utilizadores e os processos de empréstimo, garantindo maior controlo, fiabilidade e rapidez no atendimento.
+
+A biblioteca possui um acervo diversificado de livros técnicos e científicos. Cada livro é identificado por um código único (ISBN) e contém informações como título, ano de publicação e autor. Alguns títulos possuem vários exemplares físicos, o que permite que mais de um utilizador possa requisitar o mesmo livro, desde que existam exemplares disponíveis.
+
+Os utilizadores da biblioteca são maioritariamente estudantes e docentes do ISPTEC. Para poderem requisitar livros, devem estar devidamente registados no sistema. Cada utilizador possui um número de identificação único, nome completo e um contacto válido. Ao longo do tempo, um utilizador pode realizar vários empréstimos, respeitando as regras definidas pela biblioteca.
+
+Funcionamento do Sistema
+
+Quando um utilizador pretende requisitar um livro, o sistema deve verificar se existem exemplares disponíveis. Caso haja disponibilidade, o sistema deve registar o empréstimo, associando o utilizador ao livro pretendido.
+
+Cada empréstimo possui uma data de início e uma data prevista de devolução. Durante o período do empréstimo, o sistema deve permitir acompanhar o estado do mesmo, que pode assumir valores como ativo, devolvido ou atrasado.
+
+Um livro pode ser emprestado várias vezes ao longo do tempo, mas cada empréstimo corresponde a um registo único, envolvendo apenas um utilizador e um único livro.
+
+No momento da devolução, o sistema deve atualizar o estado do empréstimo e refletir automaticamente a reposição do exemplar na disponibilidade do livro.
+
+Regras e Restrições
+Um utilizador pode ter vários empréstimos ao longo do tempo, mas não pode ter mais de três empréstimos ativos em simultâneo
+Um livro pode estar associado a vários empréstimos ao longo do tempo
+Cada empréstimo deve estar associado a um único utilizador e a um único livro
+Um empréstimo só pode ser registado se houver exemplares disponíveis
+O sistema deve manter o histórico completo de todos os empréstimos realizados
+PARTE 1 – MODELAÇÃO
+
+Com base exclusivamente na interpretação do texto apresentado, elabore o Diagrama de Classes UML do sistema, identificando:
+
+Classes: entidades principais do sistema
+Atributos: informações relevantes de cada classe
+Métodos (operações): comportamentos como registar empréstimo, devolver livro e verificar disponibilidade
+Relacionamentos: relações entre classes com multiplicidades (1, 0..1, 1.., 0..)
+Tipos de relacionamento: associação, agregação ou composição
+PARTE 2 – IMPLEMENTAÇÃO
+
+Com base no Diagrama de Classes desenvolvido, implemente o sistema utilizando uma linguagem de programação à sua escolha (Java, C#, Python ou JavaScript).
+
+Requisitos mínimos de implementação
+Definição das classes com atributos e métodos
+Criação de objetos (utilizadores, livros e empréstimos)
+Funcionalidade para registar empréstimo
+Funcionalidade para devolver livro
+Validação do limite de empréstimos ativos por utilizador
+Verificação da disponibilidade antes de empréstimos
+Saída esperada
+
+O programa deve permitir simular:
+
+Registo de utilizadores
+Registo de livros
+Realização de empréstimos
+Devolução de livros
+Atualização do estado dos empréstimos
+Orientações Importantes
+A modelação deve servir de base direta para a implementação
+Não devem ser criadas classes ou funcionalidades fora do enunciado
+O código deve refletir boas práticas de orientação a objetos
+Deve haver clareza e coerência entre diagrama e código
+Critérios de Avaliação
+
+1. Modelação
+
+Identificação correta das classes
+Definição adequada de atributos
+Relacionamentos e cardinalidades corretas
+Clareza e organização do diagrama
+
+2. Implementação
+
+Correspondência entre diagrama e código
+Uso correto de orientação a objetos
+Implementação das funcionalidades principais
+Validações e regras de negócio
+Observações Importantes
+O trabalho é individual
+Deve haver coerência entre diagrama e implementação

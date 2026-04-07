@@ -1,0 +1,73 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+title Sistema de Biblioteca Académica - Diagrama de Classes
+
+class Biblioteca {
+  - utilizadores: List<Utilizador>
+  - livros: List<Livro>
+  - emprestimos: List<Emprestimo>
+  + registarUtilizador(u: Utilizador): void
+  + registarLivro(l: Livro): void
+  + registarEmprestimo(u: Utilizador, l: Livro, inicio: Date, prevista: Date): Emprestimo
+  + devolverLivro(e: Emprestimo): void
+}
+
+class Utilizador {
+  - id: String
+  - nomeCompleto: String
+  - contacto: String
+  + contarEmprestimosAtivos(): int
+  + podeRequisitar(): boolean
+}
+
+class Livro {
+  - isbn: String
+  - titulo: String
+  - anoPublicacao: int
+  - autor: String
+  - totalExemplares: int
+  - exemplaresDisponiveis: int
+  + verificarDisponibilidade(): boolean
+  + reduzirDisponibilidade(): void
+  + reporDisponibilidade(): void
+}
+
+class Emprestimo {
+  - id: String
+  - dataInicio: Date
+  - dataPrevistaDevolucao: Date
+  - dataDevolucao: Date
+  - estado: EstadoEmprestimo
+  + registar(): void
+  + devolver(data: Date): void
+  + verificarAtraso(dataAtual: Date): void
+}
+
+enum EstadoEmprestimo {
+  ATIVO
+  DEVOLVIDO
+  ATRASADO
+}
+
+Biblioteca o-- "0..*" Utilizador : gere
+Biblioteca o-- "0..*" Livro : gere
+Biblioteca o-- "0..*" Emprestimo : historico
+
+Utilizador "1" <-- "0..*" Emprestimo : realiza
+Livro "1" <-- "0..*" Emprestimo : refere-se a
+Emprestimo --> EstadoEmprestimo
+
+note right of Utilizador
+Regra:
+maximo de 3 emprestimos
+ATIVOS em simultaneo
+end note
+
+note right of Biblioteca
+So regista emprestimo se:
+1) utilizador pode requisitar
+2) livro tem exemplares disponiveis
+end note
+
+@enduml
