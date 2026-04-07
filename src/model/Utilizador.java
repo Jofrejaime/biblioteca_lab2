@@ -3,14 +3,12 @@ package model;
 import java.util.Objects;
 
 public class Utilizador {
-    private final String id;
+    private int id;
     private final String nomeCompleto;
     private final String contacto;
 
-    public Utilizador(String id, String nomeCompleto, String contacto) {
-        if (id == null || id.isBlank()) {
-            throw new IllegalArgumentException("ID do utilizador nao pode ser vazio.");
-        }
+    // Construtor para criação (sem ID - será gerado pela BD)
+    public Utilizador(String nomeCompleto, String contacto) {
         if (nomeCompleto == null || nomeCompleto.isBlank()) {
             throw new IllegalArgumentException("Nome do utilizador nao pode ser vazio.");
         }
@@ -18,13 +16,22 @@ public class Utilizador {
             throw new IllegalArgumentException("Contacto do utilizador nao pode ser vazio.");
         }
 
-        this.id = id;
         this.nomeCompleto = nomeCompleto;
         this.contacto = contacto;
     }
 
-    public String getId() {
+    // Construtor para hidratar da BD (com ID)
+    public Utilizador(int id, String nomeCompleto, String contacto) {
+        this(nomeCompleto, contacto);
+        this.id = id;
+    }
+
+    public int getId() {
         return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getNomeCompleto() {
@@ -43,7 +50,7 @@ public class Utilizador {
         if (!(obj instanceof Utilizador other)) {
             return false;
         }
-        return id.equals(other.id);
+        return id == other.id;
     }
 
     @Override
@@ -53,6 +60,6 @@ public class Utilizador {
 
     @Override
     public String toString() {
-        return "Utilizador{id='" + id + "', nome='" + nomeCompleto + "', contacto='" + contacto + "'}";
+        return "Utilizador{id=" + id + ", nome='" + nomeCompleto + "', contacto='" + contacto + "'}";
     }
 }

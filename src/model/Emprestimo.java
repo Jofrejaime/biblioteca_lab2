@@ -1,10 +1,9 @@
 package model;
 
 import java.time.LocalDate;
-import java.util.UUID;
 
 public class Emprestimo {
-    private final String id;
+    private int id;
     private final LocalDate dataInicio;
     private final LocalDate dataPrevistaDevolucao;
     private LocalDate dataDevolucao;
@@ -13,11 +12,6 @@ public class Emprestimo {
     private final Livro livro;
 
     public Emprestimo(LocalDate dataInicio, LocalDate dataPrevistaDevolucao, Utilizador utilizador, Livro livro) {
-        this(UUID.randomUUID().toString(), dataInicio, dataPrevistaDevolucao, null, EstadoEmprestimo.ATIVO, utilizador, livro);
-    }
-
-    public Emprestimo(String id, LocalDate dataInicio, LocalDate dataPrevistaDevolucao, LocalDate dataDevolucao,
-            EstadoEmprestimo estado, Utilizador utilizador, Livro livro) {
         if (dataInicio == null || dataPrevistaDevolucao == null) {
             throw new IllegalArgumentException("Datas do emprestimo sao obrigatorias.");
         }
@@ -28,17 +22,29 @@ public class Emprestimo {
             throw new IllegalArgumentException("Utilizador e livro sao obrigatorios.");
         }
 
-        this.id = id;
         this.dataInicio = dataInicio;
         this.dataPrevistaDevolucao = dataPrevistaDevolucao;
-        this.dataDevolucao = dataDevolucao;
-        this.estado = estado;
+        this.dataDevolucao = null;
+        this.estado = EstadoEmprestimo.ATIVO;
         this.utilizador = utilizador;
         this.livro = livro;
     }
 
-    public String getId() {
+    // Construtor para hidratar da BD (com ID e todos os campos)
+    public Emprestimo(int id, LocalDate dataInicio, LocalDate dataPrevistaDevolucao, LocalDate dataDevolucao,
+            EstadoEmprestimo estado, Utilizador utilizador, Livro livro) {
+        this(dataInicio, dataPrevistaDevolucao, utilizador, livro);
+        this.id = id;
+        this.dataDevolucao = dataDevolucao;
+        this.estado = estado;
+    }
+
+    public int getId() {
         return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public LocalDate getDataInicio() {
@@ -86,7 +92,7 @@ public class Emprestimo {
 
     @Override
     public String toString() {
-        return "Emprestimo{id='" + id + "', utilizador='" + utilizador.getNomeCompleto() + "', livro='"
+        return "Emprestimo{id=" + id + ", utilizador='" + utilizador.getNomeCompleto() + "', livro='"
                 + livro.getTitulo() + "', inicio=" + dataInicio + ", prevista=" + dataPrevistaDevolucao
                 + ", estado=" + estado + "}";
     }

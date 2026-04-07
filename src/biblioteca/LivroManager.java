@@ -1,6 +1,5 @@
-package repository;
+package biblioteca;
 
-import config.Conexao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -9,12 +8,21 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import model.Livro;
+import config.Conexao;
 
-public class LivroRepository {
+/**
+ * Gerencia operações relacionadas com Livros.
+ */
+public class LivroManager {
 
-    public Livro inserir(Livro livro) {
+    public Livro registar(Livro livro) {
+        if (buscarPorIsbn(livro.getIsbn()) != null) {
+            throw new IllegalStateException("Ja existe livro com este ISBN.");
+        }
+        
         String sql = "INSERT INTO livro (isbn, titulo, autor, ano_publicacao, total_exemplares, exemplares_disponiveis) VALUES (?, ?, ?, ?, ?, ?)";
-        try (Connection conn = Conexao.getInstance().getConnection(); PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection conn = Conexao.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setString(1, livro.getIsbn());
             stmt.setString(2, livro.getTitulo());
             stmt.setString(3, livro.getAutor());
@@ -36,7 +44,8 @@ public class LivroRepository {
 
     public Livro buscarPorIsbn(String isbn) {
         String sql = "SELECT id, isbn, titulo, autor, ano_publicacao, total_exemplares, exemplares_disponiveis FROM livro WHERE isbn = ?";
-        try (Connection conn = Conexao.getInstance().getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = Conexao.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, isbn);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -51,7 +60,8 @@ public class LivroRepository {
 
     public Livro buscarPorId(int id) {
         String sql = "SELECT id, isbn, titulo, autor, ano_publicacao, total_exemplares, exemplares_disponiveis FROM livro WHERE id = ?";
-        try (Connection conn = Conexao.getInstance().getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = Conexao.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -64,10 +74,24 @@ public class LivroRepository {
         }
     }
 
+    public void atualizarDisponibilidade(int livroId, int exemplaresDisponiveis) {
+        String sql = "UPDATE livro SET exemplares_disponiveis = ? WHERE id = ?";
+        try (Connection conn = Conexao.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, exemplaresDisponiveis);
+            stmt.setInt(2, livroId);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao atualizar disponibilidade do livro.", e);
+        }
+    }
+
     public List<Livro> listarTodos() {
         String sql = "SELECT id, isbn, titulo, autor, ano_publicacao, total_exemplares, exemplares_disponiveis FROM livro ORDER BY titulo";
         List<Livro> livros = new ArrayList<>();
-        try (Connection conn = Conexao.getInstance().getConnection(); PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
+        try (Connection conn = Conexao.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 livros.add(mapLivro(rs));
             }
@@ -77,18 +101,7 @@ public class LivroRepository {
         }
     }
 
-    public void atualizarDisponibilidade(int livroId, int exemplaresDisponiveis) {
-        String sql = "UPDATE livro SET exemplares_disponiveis = ? WHERE id = ?";
-        try (Connection conn = Conexao.getInstance().getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setInt(1, exemplaresDisponiveis);
-            stmt.setInt(2, livroId);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            throw new RuntimeException("Erro ao atualizar disponibilidade do livro.", e);
-        }
-    }
-
-    private Livro mapLivro(ResultSet rs) throws SQLException {
+    protected Livro mapLivro(ResultSet rs) throws SQLException {
         return new Livro(
                 rs.getInt("id"),
                 rs.getString("isbn"),

@@ -14,7 +14,7 @@ USE biblioteca_lab2;
 -- TABELA: utilizador
 -- ============================================================================
 CREATE TABLE utilizador (
-    id VARCHAR(20) PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     nome_completo VARCHAR(150) NOT NULL,
     contacto VARCHAR(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -49,12 +49,12 @@ INSERT INTO estado_emprestimo VALUES
 -- TABELA: emprestimo
 -- ============================================================================
 CREATE TABLE emprestimo (
-    id VARCHAR(36) PRIMARY KEY,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     data_inicio DATE NOT NULL,
     data_prevista_devolucao DATE NOT NULL,
     data_devolucao DATE NULL,
     estado INT NOT NULL,
-    utilizador_id VARCHAR(20) NOT NULL,
+    utilizador_id INT NOT NULL,
     livro_id INT NOT NULL,
     
     FOREIGN KEY (utilizador_id) REFERENCES utilizador(id),

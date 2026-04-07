@@ -1,44 +1,57 @@
-package repository;
+package biblioteca;
 
-import config.Conexao;
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import model.Emprestimo;
 import model.EstadoEmprestimo;
 import model.Livro;
 import model.Utilizador;
+import config.Conexao;
 
-public class EmprestimoRepository {
+/**
+ * Gerencia operações relacionadas com Empréstimos.
+ */
+public class EmprestimoManager {
 
-    public void inserir(Emprestimo emprestimo) {
-        String sql = "INSERT INTO emprestimo (id, data_inicio, data_prevista_devolucao, data_devolucao, estado, utilizador_id, livro_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
-        try (Connection conn = Conexao.getInstance().getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, emprestimo.getId());
-            stmt.setDate(2, Date.valueOf(emprestimo.getDataInicio()));
-            stmt.setDate(3, Date.valueOf(emprestimo.getDataPrevistaDevolucao()));
+    public Emprestimo inserir(Emprestimo emprestimo) {
+        String sql = "INSERT INTO emprestimo (data_inicio, data_prevista_devolucao, data_devolucao, estado, utilizador_id, livro_id) VALUES (?, ?, ?, ?, ?, ?)";
+        try (Connection conn = Conexao.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setDate(1, Date.valueOf(emprestimo.getDataInicio()));
+            stmt.setDate(2, Date.valueOf(emprestimo.getDataPrevistaDevolucao()));
             if (emprestimo.getDataDevolucao() != null) {
-                stmt.setDate(4, Date.valueOf(emprestimo.getDataDevolucao()));
+                stmt.setDate(3, Date.valueOf(emprestimo.getDataDevolucao()));
             } else {
-                stmt.setDate(4, null);
+                stmt.setDate(3, null);
             }
-            stmt.setInt(5, toEstadoId(emprestimo.getEstado()));
-            stmt.setString(6, emprestimo.getUtilizador().getId());
-            stmt.setInt(7, emprestimo.getLivro().getId());
+            stmt.setInt(4, toEstadoId(emprestimo.getEstado()));
+            stmt.setInt(5, emprestimo.getUtilizador().getId());
+            stmt.setInt(6, emprestimo.getLivro().getId());
             stmt.executeUpdate();
+
+            try (ResultSet keys = stmt.getGeneratedKeys()) {
+                if (keys.next()) {
+                    emprestimo.setId(keys.getInt(1));
+                }
+            }
+            return emprestimo;
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao inserir emprestimo.", e);
         }
     }
 
-    public Emprestimo buscarPorId(String id) {
+    public Emprestimo buscarPorId(int id) {
         String sql = baseSelect() + " WHERE e.id = ?";
-        try (Connection conn = Conexao.getInstance().getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, id);
+        try (Connection conn = Conexao.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
                     return mapEmprestimo(rs);
@@ -50,23 +63,11 @@ public class EmprestimoRepository {
         }
     }
 
-    public List<Emprestimo> listarTodos() {
-        String sql = baseSelect() + " ORDER BY e.data_inicio";
-        List<Emprestimo> emprestimos = new ArrayList<>();
-        try (Connection conn = Conexao.getInstance().getConnection(); PreparedStatement stmt = conn.prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
-            while (rs.next()) {
-                emprestimos.add(mapEmprestimo(rs));
-            }
-            return emprestimos;
-        } catch (SQLException e) {
-            throw new RuntimeException("Erro ao listar emprestimos.", e);
-        }
-    }
-
-    public int contarAtivosPorUtilizador(String utilizadorId) {
+    public int contarAtivosPorUtilizador(int utilizadorId) {
         String sql = "SELECT COUNT(*) FROM emprestimo WHERE utilizador_id = ? AND estado IN (1, 3)";
-        try (Connection conn = Conexao.getInstance().getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setString(1, utilizadorId);
+        try (Connection conn = Conexao.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, utilizadorId);
             try (ResultSet rs = stmt.executeQuery()) {
                 rs.next();
                 return rs.getInt(1);
@@ -76,24 +77,41 @@ public class EmprestimoRepository {
         }
     }
 
-    public void atualizarParaDevolvido(String emprestimoId, java.time.LocalDate dataDevolucao) {
+    public void atualizarParaDevolvido(int emprestimoId, LocalDate dataDevolucao) {
         String sql = "UPDATE emprestimo SET estado = 2, data_devolucao = ? WHERE id = ?";
-        try (Connection conn = Conexao.getInstance().getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = Conexao.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setDate(1, Date.valueOf(dataDevolucao));
-            stmt.setString(2, emprestimoId);
+            stmt.setInt(2, emprestimoId);
             stmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao atualizar devolucao do emprestimo.", e);
         }
     }
 
-    public void atualizarAtrasados(java.time.LocalDate dataAtual) {
+    public void atualizarAtrasados(LocalDate dataAtual) {
         String sql = "UPDATE emprestimo SET estado = 3 WHERE estado = 1 AND data_prevista_devolucao < ?";
-        try (Connection conn = Conexao.getInstance().getConnection(); PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (Connection conn = Conexao.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setDate(1, Date.valueOf(dataAtual));
             stmt.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Erro ao atualizar emprestimos atrasados.", e);
+        }
+    }
+
+    public List<Emprestimo> listarTodos() {
+        String sql = baseSelect() + " ORDER BY e.data_inicio";
+        List<Emprestimo> emprestimos = new ArrayList<>();
+        try (Connection conn = Conexao.getInstance().getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                emprestimos.add(mapEmprestimo(rs));
+            }
+            return emprestimos;
+        } catch (SQLException e) {
+            throw new RuntimeException("Erro ao listar emprestimos.", e);
         }
     }
 
@@ -106,9 +124,9 @@ public class EmprestimoRepository {
                 + "JOIN livro l ON l.id = e.livro_id";
     }
 
-    private Emprestimo mapEmprestimo(ResultSet rs) throws SQLException {
+    protected Emprestimo mapEmprestimo(ResultSet rs) throws SQLException {
         Utilizador utilizador = new Utilizador(
-                rs.getString("u_id"),
+                rs.getInt("u_id"),
                 rs.getString("nome_completo"),
                 rs.getString("contacto")
         );
@@ -124,10 +142,10 @@ public class EmprestimoRepository {
         );
 
         Date dataDevolucaoSql = rs.getDate("data_devolucao");
-        java.time.LocalDate dataDevolucao = dataDevolucaoSql == null ? null : dataDevolucaoSql.toLocalDate();
+        LocalDate dataDevolucao = dataDevolucaoSql == null ? null : dataDevolucaoSql.toLocalDate();
 
         return new Emprestimo(
-                rs.getString("e_id"),
+                rs.getInt("e_id"),
                 rs.getDate("data_inicio").toLocalDate(),
                 rs.getDate("data_prevista_devolucao").toLocalDate(),
                 dataDevolucao,
@@ -137,7 +155,7 @@ public class EmprestimoRepository {
         );
     }
 
-    private int toEstadoId(EstadoEmprestimo estado) {
+    protected int toEstadoId(EstadoEmprestimo estado) {
         return switch (estado) {
             case ATIVO -> 1;
             case DEVOLVIDO -> 2;
@@ -145,7 +163,7 @@ public class EmprestimoRepository {
         };
     }
 
-    private EstadoEmprestimo fromEstadoId(int estadoId) {
+    protected EstadoEmprestimo fromEstadoId(int estadoId) {
         return switch (estadoId) {
             case 1 -> EstadoEmprestimo.ATIVO;
             case 2 -> EstadoEmprestimo.DEVOLVIDO;
